@@ -1,0 +1,41 @@
+{# @TODO: Don't rely on `name` attr, try to use iFrame Resizer properly. #}
+{#
+/**
+  *
+  * Available variables:
+  * - content:
+  *   - display_name: ...
+  *   - endpoint_url: The JSON providing url.
+  */
+#}
+
+{% set items = [] %}
+{% for event in events %}
+  {% set content %}
+    <div data-dot="<span></span><div>{{ event.date|date('M') }}</div><em>{{ event.date|date('Y') }}</em>">
+      <p><small>{{ event.date|date("d M Y") }}</small></p>
+      <h3>{{ event.title }}</h3>
+      {{ event.description }}
+      {% include '@components/00-lib/atomic-gallery/atomic-gallery.previews-grid.twig' with {
+        'gallery': event.gallery
+      } only %}
+    </div>
+  {% endset %}
+  {% set items = items|merge([content]) %}
+{% endfor %}
+
+{% include '@components/00-lib/atomic-slider/atomic-slider.twig' with {
+  'slider': {
+    'items': items,
+    'options': {
+      'items': 1,
+      'dots': true,
+      'dotsData': true
+    },
+    'modifiers': [
+      'events-slider'
+    ]
+  }
+} %}
+
+{% include '@components/00-lib/atomic-gallery/atomic-gallery.lightbox.twig' %}

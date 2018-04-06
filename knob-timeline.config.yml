@@ -1,0 +1,6 @@
+title: Timeline
+status: 'wip'
+preview: '@preview'
+context:
+  api: 'data.json'
+  preview: true
