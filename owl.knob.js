@@ -28,9 +28,11 @@
 			knobTransition: '200ms cubic-bezier(0.645, 0.045, 0.355, 1)',
 			knobEasing: function(d) {return d < 0 ? -(d * d) : (d * d)}, // sensitivity curve
 			knobFPS: 60,
-			knobSpeed: 80, // pixel per tick at max velocity
+			knobSpeed: 120, // pixel per tick at max velocity
+			hiSpeed: 'hi-speed', // element gets this class when fast
 			triggerSpeedClass: 0.7, // add hi-speed class at which velocity?
-			bounceDistance: 200, // px
+			bounceDistance: 400, // px
+			trackActive: true, // increase performance to disable
 		}
 		
 		// variables to work with
@@ -102,9 +104,9 @@
 				
 				// add or remove the hi-speed class
 				if (Math.abs(this.velocity) > this.Defaults.triggerSpeedClass) {
-					this.owl.$element.addClass('hi-speed');
+					this.owl.$element.addClass(this.Defaults.hiSpeed);
 				} else {
-					this.owl.$element.removeClass('hi-speed');
+					this.owl.$element.removeClass(this.Defaults.hiSpeed);
 				}
 				
 				this.$knob.css('transform', 'translateX(' + limitDrag + 'px)');
@@ -113,7 +115,6 @@
 		
 		// animate slider
 		this.animate = $.proxy(function() {
-			// console.log(this.velocity);
 			// var currX = this.current == 0 ? 0 : this.owl._coordinates[this.current - 1];
 			var currVelocity = this.Defaults.knobEasing(this.velocity);
 			this.currX = this.getX();
@@ -134,6 +135,30 @@
 			}
 			
 			this.owl.$stage.css('transform', 'translate3d(' + this.currX + 'px, 0, 0)');
+			
+			// find active while dragging
+			if (this.Defaults.trackActive) {
+				
+				// find current slide by floating coordinate
+				var i = 0;
+				var coord = 0;
+				while (this.currX < coord) {
+					coord = this.owl._coordinates[i];
+					i++;
+				}
+				
+				if (i >= this.owl._coordinates.length) {
+					i = this.owl._coordinates.length - 1;
+				}
+				
+				// console.log(i);
+				this.current = i;
+				this.owl.$element.find('.active').removeClass('active');
+				this.owl.$element.find('.owl-item').eq(i).addClass('active');
+				this.owl.$element.find('.owl-dot').eq(i).addClass('active');
+				// this.owl._plugins.navigation.update();
+				// this.owl.to(i, 0, true);
+			}
 			
 			// schedule next animation frame
 			if (this.isDragging) {
@@ -158,6 +183,7 @@
 			// move slide some random place to force retriggering
 			this.owl.to(2);
 			
+			// determine direction
 			if (leftEnd) {
 				dir = 'right';
 			} else if (rightEnd) {
@@ -165,8 +191,8 @@
 			} else {
 				dir = this.velocity < 0 ? 'right': 'left';
 			}
-			var closest = this.owl.closest(this.currX, dir);
-			this.owl.to(closest);
+			var closer = this.owl.closest(this.currX, dir);
+			this.owl.to(closer);
 			
 			this.velocity = 0;
 			
