@@ -10,6 +10,7 @@ $knob-slide: 400px; // max width
 		max-width: $knob-slide;
 		margin: 0 auto;
 		height: $knob-size * 1.5;
+		touch-action: none;
 		
 		&:before {
 			content: '';
