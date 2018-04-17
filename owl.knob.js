@@ -32,7 +32,7 @@
 			hiSpeed: 'hi-speed', // element gets this class when fast
 			triggerSpeedClass: 0.7, // add hi-speed class at which velocity?
 			bounceDistance: 400, // px
-			trackActive: true, // increase performance to disable
+			trackActive: true, // disable to increase performance
 		}
 		
 		// variables to work with
@@ -51,7 +51,7 @@
 		
 		// all event handlers
 		this._handlers = {
-			'initialized.owl.carousel': $.proxy(function(e) {
+			'initialized.owl.carousel': $.proxy(function(event) {
 				this.owl.$element.append('<div class="owl-knob"><div class="owl-knob-klickbox"><div class="owl-knob-button"></div></div></div>');
 				
 				this.$knobWrap = this.owl.$element.find('.owl-knob');
@@ -61,6 +61,7 @@
 				this.measure()
 				
 				this.$knob.on('mousedown touchstart', $.proxy(function(e) {
+					e.preventDefault ? e.preventDefault() : (event.returnValue = false);
 					this.isDragging = true;
 					this.$knob.css('transition', 'none');
 					this.owl.$stage.css('transition', 'none');
@@ -77,6 +78,7 @@
 				}, this));
 				
 				$(window).on('mousemove touchmove', $.proxy(function(e) {
+					if (this.isDragging) e.preventDefault ? e.preventDefault() : (event.returnValue = false);
 					this.update(e);
 				}, this));
 				
@@ -96,6 +98,7 @@
 		// update knob position
 		this.update = $.proxy(function(e) {
 			if (this.isDragging) {
+				
 				var draggedDistance = e.pageX - this.dragStart;
 				
 				// limit drag distance within boundaries of the knob
@@ -115,6 +118,7 @@
 		
 		// animate slider
 		this.animate = $.proxy(function() {
+			
 			// var currX = this.current == 0 ? 0 : this.owl._coordinates[this.current - 1];
 			var currVelocity = this.Defaults.knobEasing(this.velocity);
 			this.currX = this.getX();
@@ -125,6 +129,7 @@
 			var rightEnd = this.currX < this.max;
 			
 			if ((leftEnd && movingLeft) || (rightEnd && movingRight) ) {
+				// add increasing resistance at end of slider
 				if (rightEnd) {
 					this.currX += ((this.max - this.Defaults.bounceDistance) - this.currX) * (currVelocity * 0.1);
 				} else {
@@ -142,7 +147,7 @@
 				// find current slide by floating coordinate
 				var i = 0;
 				var coord = 0;
-				while (this.currX < coord) {
+				while ((this.currX + (0.5 * this.owl._width)) < coord) {
 					coord = this.owl._coordinates[i];
 					i++;
 				}
@@ -151,13 +156,11 @@
 					i = this.owl._coordinates.length - 1;
 				}
 				
-				// console.log(i);
+				// apply current
 				this.current = i;
 				this.owl.$element.find('.active').removeClass('active');
 				this.owl.$element.find('.owl-item').eq(i).addClass('active');
 				this.owl.$element.find('.owl-dot').eq(i).addClass('active');
-				// this.owl._plugins.navigation.update();
-				// this.owl.to(i, 0, true);
 			}
 			
 			// schedule next animation frame
@@ -210,7 +213,9 @@
 		}, this);
 		
 		this.getX = $.proxy(function() {
-			return parseInt(this.owl.$stage.css('transform').split(', ')[4]);
+			var matrix = this.owl.$stage.css('transform').replace(/[^0-9\-.,]/g, '').split(',');
+			var x = matrix[12] || matrix[4];
+			return parseInt(x);
 		}, this);
 		
 		// register the event handlers
@@ -234,4 +239,5 @@
 	}
 	
 	$.fn.owlCarousel.Constructor.Plugins.Knob = Knob;
+	
 })( window.Zepto || window.jQuery, window, document );
